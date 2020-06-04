@@ -5,7 +5,7 @@ namespace WebApplication3.Migrations
     using System.Data.Entity.Migrations;
     using System.Linq;
 
-    internal sealed class Configuration : DbMigrationsConfiguration<WebApplication3.Models.ApplicationDbContext>
+    internal sealed class Configuration : DbMigrationsConfiguration<Persistence.ApplicationDbContext>
     {
         public Configuration()
         {
@@ -13,7 +13,7 @@ namespace WebApplication3.Migrations
             ContextKey = "WebApplication3.Models.ApplicationDbContext";
         }
 
-        protected override void Seed(WebApplication3.Models.ApplicationDbContext context)
+        protected override void Seed(Persistence.ApplicationDbContext context)
         {
             //  This method will be called after migrating to the latest version.
 

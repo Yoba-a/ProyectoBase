@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using Common;
 
 namespace WebApplication3.Controllers
 {
@@ -26,9 +27,10 @@ namespace WebApplication3.Controllers
 
             return View();
         }
+
         public ActionResult Blog()
         {
-            ViewBag.Message = "Blog Personalisado.";
+            ViewBag.Message = "Blog Personalizado.";
 
             return View();
         }

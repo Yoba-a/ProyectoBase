@@ -5,10 +5,15 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using Common;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
+using Modeln;
+using Newtonsoft.Json;
+using Persistence;
+using Servicen.Auth;
 using WebApplication3.Models;
 
 namespace WebApplication3.Controllers
@@ -74,22 +79,31 @@ namespace WebApplication3.Controllers
                 return View(model);
             }
 
-            // No cuenta los errores de inicio de sesión para el bloqueo de la cuenta
-            // Para permitir que los errores de contraseña desencadenen el bloqueo de la cuenta, cambie a shouldLockout: true
-            var result = await SignInManager.PasswordSignInAsync(model.UserName, model.Password, model.RememberMe, shouldLockout: false);
-            switch (result)
+            var currentUser = UserManager.FindByEmail(model.Email);
+
+            if (currentUser == null)
             {
-                case SignInStatus.Success:
-                    return RedirectToLocal(returnUrl);
-                case SignInStatus.LockedOut:
-                    return View("Lockout");
-                case SignInStatus.RequiresVerification:
-                    return RedirectToAction("SendCode", new { ReturnUrl = returnUrl, RememberMe = model.RememberMe });
-                case SignInStatus.Failure:
-                default:
-                    ModelState.AddModelError("", "Intento de inicio de sesión no válido.");
-                    return View(model);
+                ModelState.AddModelError("", "Error al Loggearse.");
+                return View(model);
             }
+
+            if (!UserManager.CheckPassword(currentUser, model.Password))
+            {
+                ModelState.AddModelError("", "Error al loggearse.");
+                return View(model);
+            }
+
+            var identity = await UserManager.CreateIdentityAsync(currentUser, DefaultAuthenticationTypes.ApplicationCookie);
+
+            identity = await ApplicationUser.CreateUserClaims(
+                identity,
+                UserManager,
+                currentUser.Id
+            );
+
+            AuthenticationManager.SignIn(new AuthenticationProperties() { IsPersistent = true }, identity);
+
+            return RedirectToLocal(returnUrl);
         }
 
         //
@@ -152,32 +166,17 @@ namespace WebApplication3.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = new ApplicationUser { UserName = model.UserName, Email = model.Email, Nombre = model.Nombre, Apellido = model.Apellido };
+                var user = new ApplicationUser { UserName = model.UserName,
+                    Email = model.Email,
+                    Nombre = model.Nombre,
+                    Apellido = model.Apellido };
+
                 var result = await UserManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
-
-                {
-
-                    var RoleManager = new RoleManager<IdentityRole>(new RoleStore<IdentityRole>(new ApplicationDbContext()));
-                    var RoleName = "Admin";
-                    if (!RoleManager.RoleExists(RoleName))
-                    {
-                        RoleManager.Create(new IdentityRole(RoleName));
-                        var userTemp = UserManager.FindByName(model.UserName);
-                        if (UserManager.IsInRole(userTemp.Id, RoleName))
-                        {
-                            UserManager.AddToRole(userTemp.Id, RoleName);
-                        }
-                    }
-                    await SignInManager.SignInAsync(user, isPersistent:false, rememberBrowser:false);
                     
-                    // Para obtener más información sobre cómo habilitar la confirmación de cuentas y el restablecimiento de contraseña, visite https://go.microsoft.com/fwlink/?LinkID=320771
-                    // Enviar correo electrónico con este vínculo
-                    // string code = await UserManager.GenerateEmailConfirmationTokenAsync(user.Id);
-                    // var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
-                    // await UserManager.SendEmailAsync(user.Id, "Confirmar cuenta", "Para confirmar la cuenta, haga clic <a href=\"" + callbackUrl + "\">aquí</a>");
-
-                    return RedirectToAction("Index", "Home");
+                {
+                    
+                    return RedirectToAction("Login", "Account");
                 }
                 AddErrors(result);
             }

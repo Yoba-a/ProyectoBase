@@ -1,0 +1,36 @@
+﻿@model IEnumerable<Modeln.UserGrid>
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>USUARIOS CREADOS</h2>
+
+<table class="table table-striped">
+    <tbody>
+    <thead>
+        <tr>
+            <th>Nombre de usuario </th>
+            <th>Apellido de usuario </th>
+            <th>Email</th>
+            <th>Roles</th>
+            <th>info Cliente</th>
+
+        </tr>
+     </thead>
+        @foreach (var m in Model)
+        {
+<tr>
+    <td><a href="~/user/get/@m.Id">@m.Nombre</a></td>
+    <td>@m.Apellido</td>
+    <td>@m.Email</td>
+    <td>@m.Role</td>
+    @if (m.Role == "User")
+    {
+     <td><a class="btn btn-default" href="~/cliente/crear">Crear Cuenta&raquo;</a></td>
+    }
+
+</tr>
+        }
+
+    </tbody>
+</table>

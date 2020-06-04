@@ -49,8 +49,8 @@ namespace WebApplication3.Models
     public class LoginViewModel
     {
         [Required]
-        [Display(Name = "Nombre de Usuario")]
-        public string UserName { get; set; }
+        [Display(Name = "Email")]
+        public string Email { get; set; }
 
         [Required]
         [DataType(DataType.Password)]
@@ -95,7 +95,7 @@ namespace WebApplication3.Models
         [Compare("Password", ErrorMessage = "La contraseña y la contraseña de confirmación no coinciden.")]
         public string ConfirmPassword { get; set; }
     }
-
+   
     public class ResetPasswordViewModel
     {
         [Required]
